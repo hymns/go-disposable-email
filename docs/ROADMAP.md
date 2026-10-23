@@ -7,6 +7,7 @@
 | `Checker`, `Check`, `IsDisposable`, embedded list | [0002](adr/0002-one-list-embedded-from-disposable-email-domains.md), [0003](adr/0003-lookup-walks-up-the-domain-blocked-then-allowed-then-list.md), [0004](adr/0004-a-checker-value-and-a-package-default.md) |
 | `Refresher`, `Store`, `FileStore` | [0005](adr/0005-refresh-is-opt-in-behind-a-store.md), [0006](adr/0006-stored-list-reloaded-hourly.md) |
 | `go generate` refresh of `domains.txt` | replaces curling the list and pasting it below the header by hand |
+| Examples for net/http, chi, Gin, Echo, Fiber v3 | `examples/`, one module each ([0001](adr/0001-one-flat-package-standard-library-only.md)) |
 
 ## Next, in order
 

@@ -38,6 +38,7 @@ caller's goroutine, and only when the caller starts it.
 | `refresh.go` | `Refresher`, `Store`, `FileStore` | start anything on import |
 | `domains.txt` | the embedded list | be edited by hand |
 | `internal/fetchlist` | `go generate` command | be imported |
+| `examples/<framework>` | a runnable sign-up server per framework, each its own module | be required by the root module |
 
 ## External services
 

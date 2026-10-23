@@ -10,6 +10,7 @@ Refuse sign-ups from disposable (throwaway) email providers in Go.
 - Mainstream providers (Gmail, Outlook, Yahoo, iCloud, Proton, …) are never
   refused, even if a wrong entry turns up upstream.
 - No network at check time, no dependencies, about 75 ns per check.
+- Works with any framework: it takes a string and returns an error.
 - Optional background refresh, validated before use.
 
 ```
@@ -21,15 +22,56 @@ go get github.com/hymns/go-disposable-email
 ```go
 import disposable "github.com/hymns/go-disposable-email"
 
-if err := disposable.Check(req.Email); err != nil {
+if err := disposable.Check(email); err != nil {
 	// err is disposable.ErrDisposable:
 	// "disposable email addresses are not accepted; please use a permanent email"
-	return fiber.NewError(fiber.StatusBadRequest, err.Error())
 }
 ```
 
 `IsDisposable(email) bool` does the same without an error. Neither one
 checks that the address is well formed; validate the format first.
+
+In a `net/http` handler:
+
+```go
+func register(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email")
+	if err := disposable.Check(email); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	// create the account
+}
+```
+
+The same call works in any framework's handler; only the way you send the
+400 changes. [`examples/`](examples/) has a runnable sign-up server for each:
+
+| Framework | Example | Refuse with |
+|---|---|---|
+| net/http | [`examples/nethttp`](examples/nethttp/main.go) | `http.Error(w, err.Error(), http.StatusBadRequest)` |
+| chi | [`examples/chi`](examples/chi/main.go) | `http.Error(w, err.Error(), http.StatusBadRequest)` |
+| Gin | [`examples/gin`](examples/gin/main.go) | a `notdisposable` binding tag |
+| Echo | [`examples/echo`](examples/echo/main.go) | `echo.NewHTTPError(http.StatusBadRequest, err.Error())` |
+| Fiber v3 | [`examples/fiber`](examples/fiber/main.go) | `fiber.NewError(fiber.StatusBadRequest, err.Error())` |
+
+```
+cd examples/gin && go run .
+curl -i -d '{"email":"a@mailinator.com"}' localhost:8080/register   # 400
+```
+
+Each example is its own module, so the library itself stays free of
+dependencies.
+
+It also fits a validator: with go-playground/validator, register
+`disposable.IsDisposable` behind a custom tag.
+
+```go
+v.RegisterValidation("notdisposable", func(fl validator.FieldLevel) bool {
+	return !disposable.IsDisposable(fl.Field().String())
+})
+// type SignUp struct { Email string `validate:"required,email,notdisposable"` }
+```
 
 ## Your own rules
 
